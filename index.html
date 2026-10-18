@@ -83,6 +83,14 @@ table.prices{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nu
 .code{font-family:var(--display);font-size:30px;letter-spacing:.06em;color:var(--gold-2)}
 pre.summary{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0;max-height:260px;overflow:auto}
 .row{display:flex;flex-wrap:wrap;gap:10px}
+[hidden]{display:none!important}
+.countdown{align-items:center;text-align:center;gap:12px;background:linear-gradient(90deg,rgba(79,157,255,.12),rgba(255,74,36,.12)),var(--panel)}
+.cd-title{margin:0;font-family:var(--label);font-weight:700;font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.cd-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;max-width:520px}
+.cd-box{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 4px;display:flex;flex-direction:column;align-items:center}
+.cd-num{font-family:var(--display);font-size:clamp(30px,8vw,44px);line-height:1;color:var(--gold-2);font-variant-numeric:tabular-nums}
+.cd-lbl{font-family:var(--label);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.cd-sub{margin:0;color:var(--muted);font-size:14px}
 footer{color:var(--muted);font-size:14px;text-align:center}
 @media (prefers-reduced-motion:no-preference){.btn{transition:border-color .15s, transform .15s}.btn:active{transform:translateY(1px)}}
 </style>
@@ -104,6 +112,17 @@ footer{color:var(--muted);font-size:14px;text-align:center}
       <span class="chip">Inscripciones hasta el <b>jueves 10 de diciembre</b></span>
     </div>
   </header>
+
+  <section class="countdown" id="countdown" aria-live="polite">
+    <p class="cd-title" id="cdTitle">Cierre de inscripciones en</p>
+    <div class="cd-grid" id="cdGrid">
+      <div class="cd-box"><span class="cd-num" id="cdD">--</span><span class="cd-lbl">Días</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdH">--</span><span class="cd-lbl">Horas</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdM">--</span><span class="cd-lbl">Minutos</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdS">--</span><span class="cd-lbl">Segundos</span></div>
+    </div>
+    <p class="cd-sub">Jueves 10 de diciembre a las 23:59 (hora de Ecuador)</p>
+  </section>
 
   <form id="form" novalidate>
     <div style="display:flex;flex-direction:column;gap:22px">
@@ -189,21 +208,33 @@ footer{color:var(--muted);font-size:14px;text-align:center}
       <button type="button" class="btn" id="copySummary">Copiar resumen</button>
       <button type="button" class="btn" id="newOne">Inscribir otro equipo</button>
     </div>
-    <p class="hint" style="margin:0">Tu pago queda por verificar; te confirmaremos por WhatsApp. ¿No llegó el correo? Revisa la carpeta de spam o escríbenos al <b style="color:var(--fg)">099 699 8513</b>.</p>
-  </section>
-  <section id="closed" hidden>
-    <h2><span class="n">!</span>Inscripciones cerradas</h2>
-    <p style="margin:0">El plazo terminó el jueves 10 de diciembre. Para casos especiales escríbenos al <b>099 699 8513</b>.</p>
+    <p class="hint" style="margin:0">Tu pago queda por verificar; te enviaremos la confirmación a tu correo electrónico. ¿No te llegó la copia? Revisa la carpeta de spam o escríbenos al <b style="color:var(--fg)">099 699 8513</b>.</p>
   </section>
 
-  <footer>Organizan: Equipo Tesla 3D · U.E.P. San José “La Salle” Latacunga · Información: 099 699 8513</footer>
+  <footer>Organizan: Equipo Tesla 3D · U.E.P. San José “La Salle” Latacunga · Información: 099 699 8513<br>© 2026 Equipo Tesla 3D · Todos los derechos reservados</footer>
 </div>
 <div class="greca" aria-hidden="true"></div>
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbx9LBGkLV-98kZQSt_kWmBjSC54lc8NyBCFWKBAJIW0lq2r1iWmyaJdYAv9FJ5WB4bw/exec';
 const CIERRE = new Date('2026-12-10T23:59:59-05:00');
-if (new Date() > CIERRE) { document.getElementById('form').hidden = true; document.getElementById('closed').hidden = false; }
+function tick(){
+  const ms = CIERRE - new Date();
+  if (ms <= 0) {
+    document.getElementById('form').hidden = true;
+    document.getElementById('cdGrid').hidden = true;
+    document.getElementById('cdTitle').textContent = 'Inscripciones cerradas';
+    return false;
+  }
+  const p = n => String(n).padStart(2, '0');
+  const s = Math.floor(ms / 1000);
+  document.getElementById('cdD').textContent = Math.floor(s / 86400);
+  document.getElementById('cdH').textContent = p(Math.floor(s % 86400 / 3600));
+  document.getElementById('cdM').textContent = p(Math.floor(s % 3600 / 60));
+  document.getElementById('cdS').textContent = p(s % 60);
+  return true;
+}
+if (tick()) { const t = setInterval(() => { if (!tick()) clearInterval(t); }, 1000); }
 const CATS = [{"id": "msa", "name": "Minisumo Autónomo", "levels": [["Colegial", 15], ["Amateur", 20], ["Profesional", 25]], "unit": "robot"}, {"id": "msrc", "name": "Minisumo RC", "levels": [["Colegial", 15], ["Amateur", 20], ["Profesional", 25]], "unit": "robot"}, {"id": "micro", "name": "Microsumo", "levels": [["Colegial", 15], ["Amateur", 20], ["Profesional", 25]], "unit": "robot"}, {"id": "sl", "name": "Seguidor de Línea", "levels": [["Colegial", 15], ["Amateur", 20], ["Profesional", 25]], "unit": "robot"}, {"id": "soc", "name": "Robot Soccer", "levels": [["Colegial", 15], ["Profesional", 25]], "unit": "equipo de 2 robots"}, {"id": "lv", "name": "Robot Soccer LEGO / VEX", "levels": [["Inferior", 15], ["Superior", 25]], "unit": "equipo de 2 robots"}];
 
 const $ = id => document.getElementById(id);
